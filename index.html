@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simulator Piala Dunia 2026</title>
+    <title>Simulator Piala Dunia 2026 (Jadwal WIB)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         input[type=number]::-webkit-inner-spin-button, 
@@ -12,22 +12,33 @@
 </head>
 <body class="bg-slate-100 text-slate-800 font-sans">
 
-<div class="max-w-6xl mx-auto p-4 sm:p-6">
-    <header class="text-center mb-8">
+<div class="max-w-7xl mx-auto p-4 sm:p-6">
+    <header class="text-center mb-6">
         <h1 class="text-4xl font-extrabold text-blue-900 mb-2">Piala Dunia 2026 Simulator</h1>
-        <p class="text-slate-600 mb-4">Berdasarkan format 48 Tim. Masukkan skor untuk melihat klasemen otomatis.</p>
+        <p class="text-slate-600 mb-4">Format 48 Tim • Jadwal Pertandingan dalam Waktu Indonesia Barat (WIB)</p>
         
-        <button onclick="resetData()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded shadow font-semibold transition-colors">
+        <button onclick="resetData()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded shadow font-semibold transition-colors text-sm">
             🔄 Reset Semua Skor
         </button>
     </header>
 
-    <div id="groups-container" class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <div class="flex justify-center space-x-4 mb-8">
+        <button id="tab-group-btn" onclick="switchTab('group')" class="px-6 py-2.5 font-bold rounded-lg shadow transition-all bg-blue-900 text-white">
+            ⚽ Fase Grup (A - L)
+        </button>
+        <button id="tab-ko-btn" onclick="switchTab('ko')" class="px-6 py-2.5 font-bold rounded-lg shadow transition-all bg-white text-slate-700 hover:bg-slate-200">
+            🏆 Babak Gugur
+        </button>
+    </div>
+
+    <div id="tab-group-content" class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+        </div>
+
+    <div id="tab-ko-content" class="hidden space-y-12">
         </div>
 </div>
 
 <script>
-    // Data grup diambil langsung dari file Excel
     const groupsData = {
         'A': ['Mexico', 'South Africa', 'Rep. of Korea', 'Czech Rep.'],
         'B': ['Canada', 'Bosnia/Herzeg.', 'Qatar', 'Switzerland'],
@@ -43,187 +54,21 @@
         'L': ['England', 'Croatia', 'Ghana', 'Panama']
     };
 
-    const container = document.getElementById('groups-container');
+    // Format: [Index_Tim1, Index_Tim2, Waktu Pertandingan WIB]
+    const groupMatchesWithTime = {
+        "A": [[0, 1, "12 Jun 2026, 04:00 WIB"], [2, 3, "12 Jun 2026, 11:00 WIB"], [3, 1, "19 Jun 2026, 01:00 WIB"], [0, 2, "19 Jun 2026, 10:00 WIB"], [3, 0, "25 Jun 2026, 10:00 WIB"], [1, 2, "25 Jun 2026, 10:00 WIB"]], 
+        "B": [[0, 1, "13 Jun 2026, 04:00 WIB"], [2, 3, "14 Jun 2026, 04:00 WIB"], [3, 1, "19 Jun 2026, 04:00 WIB"], [0, 2, "19 Jun 2026, 07:00 WIB"], [3, 0, "25 Jun 2026, 04:00 WIB"], [1, 2, "25 Jun 2026, 04:00 WIB"]], 
+        "C": [[2, 3, "14 Jun 2026, 10:00 WIB"], [0, 1, "14 Jun 2026, 07:00 WIB"], [0, 2, "20 Jun 2026, 09:30 WIB"], [3, 1, "20 Jun 2026, 07:00 WIB"], [3, 0, "25 Jun 2026, 07:00 WIB"], [1, 2, "25 Jun 2026, 07:00 WIB"]], 
+        "D": [[0, 1, "13 Jun 2026, 10:00 WIB"], [2, 3, "14 Jun 2026, 13:00 WIB"], [3, 1, "20 Jun 2026, 12:00 WIB"], [0, 2, "20 Jun 2026, 04:00 WIB"], [3, 0, "26 Jun 2026, 11:00 WIB"], [1, 2, "26 Jun 2026, 11:00 WIB"]], 
+        "E": [[2, 3, "15 Jun 2026, 08:00 WIB"], [0, 1, "15 Jun 2026, 02:00 WIB"], [0, 2, "21 Jun 2026, 05:00 WIB"], [3, 1, "21 Jun 2026, 09:00 WIB"], [1, 2, "26 Jun 2026, 05:00 WIB"], [3, 0, "26 Jun 2026, 05:00 WIB"]], 
+        "F": [[0, 1, "15 Jun 2026, 05:00 WIB"], [2, 3, "15 Jun 2026, 11:00 WIB"], [0, 2, "21 Jun 2026, 02:00 WIB"], [3, 1, "21 Jun 2026, 13:00 WIB"], [1, 2, "26 Jun 2026, 08:00 WIB"], [3, 0, "26 Jun 2026, 08:00 WIB"]], 
+        "G": [[2, 3, "16 Jun 2026, 10:00 WIB"], [0, 1, "16 Jun 2026, 04:00 WIB"], [0, 2, "22 Jun 2026, 04:00 WIB"], [3, 1, "22 Jun 2026, 10:00 WIB"], [1, 2, "27 Jun 2026, 12:00 WIB"], [3, 0, "27 Jun 2026, 12:00 WIB"]], 
+        "H": [[2, 3, "16 Jun 2026, 07:00 WIB"], [0, 1, "16 Jun 2026, 01:00 WIB"], [3, 1, "22 Jun 2026, 07:00 WIB"], [0, 2, "22 Jun 2026, 01:00 WIB"], [1, 2, "27 Jun 2026, 09:00 WIB"], [3, 0, "27 Jun 2026, 09:00 WIB"]], 
+        "I": [[0, 1, "17 Jun 2026, 04:00 WIB"], [2, 3, "17 Jun 2026, 07:00 WIB"], [3, 1, "23 Jun 2026, 09:00 WIB"], [0, 2, "23 Jun 2026, 06:00 WIB"], [3, 0, "27 Jun 2026, 04:00 WIB"], [1, 2, "27 Jun 2026, 04:00 WIB"]], 
+        "J": [[0, 1, "17 Jun 2026, 10:00 WIB"], [2, 3, "17 Jun 2026, 13:00 WIB"], [0, 2, "23 Jun 2026, 02:00 WIB"], [3, 1, "23 Jun 2026, 12:00 WIB"], [1, 2, "28 Jun 2026, 11:00 WIB"], [3, 0, "28 Jun 2026, 11:00 WIB"]], 
+        "K": [[0, 1, "18 Jun 2026, 02:00 WIB"], [2, 3, "18 Jun 2026, 11:00 WIB"], [0, 2, "24 Jun 2026, 02:00 WIB"], [3, 1, "24 Jun 2026, 11:00 WIB"], [3, 0, "28 Jun 2026, 08:30 WIB"], [1, 2, "28 Jun 2026, 08:30 WIB"]], 
+        "L": [[2, 3, "18 Jun 2026, 08:00 WIB"], [0, 1, "18 Jun 2026, 05:00 WIB"], [0, 2, "24 Jun 2026, 05:00 WIB"], [3, 1, "24 Jun 2026, 08:00 WIB"], [3, 0, "28 Jun 2026, 06:00 WIB"], [1, 2, "28 Jun 2026, 06:00 WIB"]]
+    };
 
-    // State untuk menyimpan skor
-    let scores = {};
-
-    function init() {
-        // Coba muat data dari localStorage jika ada
-        const savedData = localStorage.getItem('wc2026_scores');
-        if (savedData) {
-            scores = JSON.parse(savedData);
-        }
-
-        for (const group in groupsData) {
-            // Pastikan objek grup ada di variabel scores
-            if (!scores[group]) scores[group] = {};
-            renderGroup(group, groupsData[group]);
-        }
-    }
-
-    // Fungsi untuk menyimpan data ke localStorage
-    function saveData() {
-        localStorage.setItem('wc2026_scores', JSON.stringify(scores));
-    }
-
-    // Fungsi untuk mereset seluruh data
-    function resetData() {
-        if(confirm("Apakah Anda yakin ingin menghapus semua skor pertandingan?")) {
-            localStorage.removeItem('wc2026_scores');
-            location.reload(); // Muat ulang halaman
-        }
-    }
-
-    function getMatches(teams) {
-        return [
-            [0, 1], [2, 3], // Matchday 1
-            [0, 2], [1, 3], // Matchday 2
-            [0, 3], [1, 2]  // Matchday 3
-        ];
-    }
-
-    function calculateStandings(groupLetter) {
-        const teams = groupsData[groupLetter];
-        const standings = teams.map((team, idx) => ({
-            id: idx, name: team, pld: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0, gd: 0, pts: 0
-        }));
-
-        const matches = getMatches(teams);
-        
-        matches.forEach((match, idx) => {
-            const score = scores[groupLetter][idx];
-            if (score && score.t1 !== "" && score.t2 !== "") {
-                const s1 = parseInt(score.t1);
-                const s2 = parseInt(score.t2);
-                
-                const team1 = standings[match[0]];
-                const team2 = standings[match[1]];
-
-                team1.pld++; team2.pld++;
-                team1.gf += s1; team1.ga += s2; team1.gd = team1.gf - team1.ga;
-                team2.gf += s2; team2.ga += s1; team2.gd = team2.gf - team2.ga;
-
-                if (s1 > s2) {
-                    team1.w++; team1.pts += 3;
-                    team2.l++;
-                } else if (s1 < s2) {
-                    team2.w++; team2.pts += 3;
-                    team1.l++;
-                } else {
-                    team1.d++; team2.d++;
-                    team1.pts += 1; team2.pts += 1;
-                }
-            }
-        });
-
-        // Sorting: Poin -> Selisih Gol (GD) -> Gol Memasukkan (GF)
-        standings.sort((a, b) => {
-            if (b.pts !== a.pts) return b.pts - a.pts;
-            if (b.gd !== a.gd) return b.gd - a.gd;
-            return b.gf - a.gf;
-        });
-
-        return standings;
-    }
-
-    function updateTable(groupLetter) {
-        const standings = calculateStandings(groupLetter);
-        const tbody = document.getElementById(`tbody-${groupLetter}`);
-        tbody.innerHTML = '';
-
-        standings.forEach((team, index) => {
-            let rowClass = index < 2 ? 'bg-green-50' : (index === 2 ? 'bg-yellow-50' : ''); 
-            tbody.innerHTML += `
-                <tr class="border-b ${rowClass} text-sm">
-                    <td class="p-2 text-center font-semibold">${index + 1}</td>
-                    <td class="p-2 font-medium">${team.name}</td>
-                    <td class="p-2 text-center">${team.pld}</td>
-                    <td class="p-2 text-center">${team.w}</td>
-                    <td class="p-2 text-center">${team.d}</td>
-                    <td class="p-2 text-center">${team.l}</td>
-                    <td class="p-2 text-center">${team.gf}</td>
-                    <td class="p-2 text-center">${team.ga}</td>
-                    <td class="p-2 text-center font-bold">${team.gd}</td>
-                    <td class="p-2 text-center font-bold text-blue-700">${team.pts}</td>
-                </tr>
-            `;
-        });
-    }
-
-    function onScoreChange(groupLetter, matchIdx, isT1, val) {
-        if (!scores[groupLetter][matchIdx]) scores[groupLetter][matchIdx] = { t1: "", t2: "" };
-        if (isT1) scores[groupLetter][matchIdx].t1 = val;
-        else scores[groupLetter][matchIdx].t2 = val;
-        
-        // Simpan data setiap kali ada perubahan skor
-        saveData();
-        
-        updateTable(groupLetter);
-    }
-
-    function renderGroup(groupLetter, teams) {
-        const matches = getMatches(teams);
-        
-        let matchHTML = '';
-        matches.forEach((match, idx) => {
-            // Ambil data skor dari variabel scores (jika ada data tersimpan)
-            let t1Value = scores[groupLetter][idx]?.t1 !== undefined ? scores[groupLetter][idx].t1 : '';
-            let t2Value = scores[groupLetter][idx]?.t2 !== undefined ? scores[groupLetter][idx].t2 : '';
-
-            matchHTML += `
-                <div class="flex justify-between items-center bg-white p-2 mb-2 rounded shadow-sm border text-sm">
-                    <span class="w-1/3 text-right font-medium">${teams[match[0]]}</span>
-                    <div class="w-1/3 flex justify-center items-center gap-2">
-                        <input type="number" min="0" value="${t1Value}" class="w-10 h-8 border rounded text-center font-bold focus:ring-2 focus:ring-blue-500 outline-none" 
-                            oninput="onScoreChange('${groupLetter}', ${idx}, true, this.value)">
-                        <span>-</span>
-                        <input type="number" min="0" value="${t2Value}" class="w-10 h-8 border rounded text-center font-bold focus:ring-2 focus:ring-blue-500 outline-none" 
-                            oninput="onScoreChange('${groupLetter}', ${idx}, false, this.value)">
-                    </div>
-                    <span class="w-1/3 text-left font-medium">${teams[match[1]]}</span>
-                </div>
-            `;
-        });
-
-        const card = document.createElement('div');
-        card.className = "bg-white p-4 rounded-xl shadow-md border border-slate-200";
-        card.innerHTML = `
-            <h2 class="text-xl font-bold mb-4 text-blue-800 border-b pb-2">Grup ${groupLetter}</h2>
-            
-            <div class="overflow-x-auto mb-6">
-                <table class="w-full text-left border-collapse">
-                    <thead>
-                        <tr class="bg-slate-100 text-sm">
-                            <th class="p-2 text-center">#</th>
-                            <th class="p-2">Tim</th>
-                            <th class="p-2 text-center">P</th>
-                            <th class="p-2 text-center">W</th>
-                            <th class="p-2 text-center">D</th>
-                            <th class="p-2 text-center">L</th>
-                            <th class="p-2 text-center">GF</th>
-                            <th class="p-2 text-center">GA</th>
-                            <th class="p-2 text-center">GD</th>
-                            <th class="p-2 text-center">Pts</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tbody-${groupLetter}">
-                    </tbody>
-                </table>
-            </div>
-            
-            <h3 class="font-semibold text-sm text-slate-500 mb-3 uppercase">Pertandingan</h3>
-            <div class="bg-slate-50 p-2 rounded">
-                ${matchHTML}
-            </div>
-        `;
-        
-        container.appendChild(card);
-        updateTable(groupLetter); 
-    }
-
-    init();
-</script>
-
-</body>
-</html>
+    const koTimes = {
+        "
