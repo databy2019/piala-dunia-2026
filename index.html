@@ -15,16 +15,19 @@
 <div class="max-w-6xl mx-auto p-4 sm:p-6">
     <header class="text-center mb-8">
         <h1 class="text-4xl font-extrabold text-blue-900 mb-2">Piala Dunia 2026 Simulator</h1>
-        <p class="text-slate-600">Berdasarkan format 48 Tim (Grup A - L). Masukkan skor untuk melihat klasemen otomatis.</p>
+        <p class="text-slate-600 mb-4">Berdasarkan format 48 Tim. Masukkan skor untuk melihat klasemen otomatis.</p>
+        
+        <button onclick="resetData()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded shadow font-semibold transition-colors">
+            🔄 Reset Semua Skor
+        </button>
     </header>
 
     <div id="groups-container" class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <!-- Grup akan di-render di sini oleh JavaScript -->
-    </div>
+        </div>
 </div>
 
 <script>
-    // Data grup diambil langsung dari file Excel WCup_2026_4.2.9_en.xlsx
+    // Data grup diambil langsung dari file Excel
     const groupsData = {
         'A': ['Mexico', 'South Africa', 'Rep. of Korea', 'Czech Rep.'],
         'B': ['Canada', 'Bosnia/Herzeg.', 'Qatar', 'Switzerland'],
@@ -42,18 +45,37 @@
 
     const container = document.getElementById('groups-container');
 
-    // State untuk menyimpan skor: scores['A'][matchIndex] = { team1Score, team2Score }
-    const scores = {};
+    // State untuk menyimpan skor
+    let scores = {};
 
     function init() {
+        // Coba muat data dari localStorage jika ada
+        const savedData = localStorage.getItem('wc2026_scores');
+        if (savedData) {
+            scores = JSON.parse(savedData);
+        }
+
         for (const group in groupsData) {
-            scores[group] = {};
+            // Pastikan objek grup ada di variabel scores
+            if (!scores[group]) scores[group] = {};
             renderGroup(group, groupsData[group]);
         }
     }
 
+    // Fungsi untuk menyimpan data ke localStorage
+    function saveData() {
+        localStorage.setItem('wc2026_scores', JSON.stringify(scores));
+    }
+
+    // Fungsi untuk mereset seluruh data
+    function resetData() {
+        if(confirm("Apakah Anda yakin ingin menghapus semua skor pertandingan?")) {
+            localStorage.removeItem('wc2026_scores');
+            location.reload(); // Muat ulang halaman
+        }
+    }
+
     function getMatches(teams) {
-        // Format Pertandingan Round Robin untuk 4 Tim
         return [
             [0, 1], [2, 3], // Matchday 1
             [0, 2], [1, 3], // Matchday 2
@@ -111,7 +133,7 @@
         tbody.innerHTML = '';
 
         standings.forEach((team, index) => {
-            let rowClass = index < 2 ? 'bg-green-50' : (index === 2 ? 'bg-yellow-50' : ''); // Top 2 lolos, ke-3 peluang
+            let rowClass = index < 2 ? 'bg-green-50' : (index === 2 ? 'bg-yellow-50' : ''); 
             tbody.innerHTML += `
                 <tr class="border-b ${rowClass} text-sm">
                     <td class="p-2 text-center font-semibold">${index + 1}</td>
@@ -134,6 +156,9 @@
         if (isT1) scores[groupLetter][matchIdx].t1 = val;
         else scores[groupLetter][matchIdx].t2 = val;
         
+        // Simpan data setiap kali ada perubahan skor
+        saveData();
+        
         updateTable(groupLetter);
     }
 
@@ -142,14 +167,18 @@
         
         let matchHTML = '';
         matches.forEach((match, idx) => {
+            // Ambil data skor dari variabel scores (jika ada data tersimpan)
+            let t1Value = scores[groupLetter][idx]?.t1 !== undefined ? scores[groupLetter][idx].t1 : '';
+            let t2Value = scores[groupLetter][idx]?.t2 !== undefined ? scores[groupLetter][idx].t2 : '';
+
             matchHTML += `
                 <div class="flex justify-between items-center bg-white p-2 mb-2 rounded shadow-sm border text-sm">
                     <span class="w-1/3 text-right font-medium">${teams[match[0]]}</span>
                     <div class="w-1/3 flex justify-center items-center gap-2">
-                        <input type="number" min="0" class="w-10 h-8 border rounded text-center font-bold focus:ring-2 focus:ring-blue-500 outline-none" 
+                        <input type="number" min="0" value="${t1Value}" class="w-10 h-8 border rounded text-center font-bold focus:ring-2 focus:ring-blue-500 outline-none" 
                             oninput="onScoreChange('${groupLetter}', ${idx}, true, this.value)">
                         <span>-</span>
-                        <input type="number" min="0" class="w-10 h-8 border rounded text-center font-bold focus:ring-2 focus:ring-blue-500 outline-none" 
+                        <input type="number" min="0" value="${t2Value}" class="w-10 h-8 border rounded text-center font-bold focus:ring-2 focus:ring-blue-500 outline-none" 
                             oninput="onScoreChange('${groupLetter}', ${idx}, false, this.value)">
                     </div>
                     <span class="w-1/3 text-left font-medium">${teams[match[1]]}</span>
@@ -179,7 +208,6 @@
                         </tr>
                     </thead>
                     <tbody id="tbody-${groupLetter}">
-                        <!-- Klasemen via JS -->
                     </tbody>
                 </table>
             </div>
@@ -191,10 +219,9 @@
         `;
         
         container.appendChild(card);
-        updateTable(groupLetter); // Render klasemen awal (semua nol)
+        updateTable(groupLetter); 
     }
 
-    // Jalankan aplikasi
     init();
 </script>
 
