@@ -357,18 +357,31 @@
         // Ambil data dari Firebase secara realtime
         db.ref('data_skor').on('value', (snapshot) => {
             const data = snapshot.val();
-            if (data) {
+            
+            // JIKA DATA KOSONG (Database baru), kita paksa inisialisasi agar aplikasi tidak hang
+            if (!data) {
+                console.log("Database kosong, melakukan inisialisasi awal...");
+                scores = { groups: {}, knockout: {} };
+                // Kirim data awal ke Firebase agar database tidak null lagi
+                saveData(); 
+            } else {
                 scores = data;
                 document.getElementById('status').innerText = "Terhubung (Live)";
-                document.getElementById('status').className = "text-green-600";
+                document.getElementById('status').className = "text-green-600 font-bold";
             }
+            
+            // Panggil render setelah data dipastikan ada
             renderAll();
         });
     }
 
     function renderAll() {
-        if(currentTab === 'group') renderGroups();
-        else renderKnockout();
+        console.log("Memulai render..."); // Cek di console apakah ini muncul
+        if(currentTab === 'group') {
+            renderGroups();
+        } else {
+            renderKnockout();
+        }
     }
 
     function saveData() {
