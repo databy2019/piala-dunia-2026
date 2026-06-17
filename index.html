@@ -47,19 +47,20 @@
     appId: "1:385166343288:web:8710cb2fbf1bd746f1418d"
   };
 
-  // Inisialisasi Firebase
+  // 2. INISIALISASI (Tanpa Import)
         if (!firebase.apps.length) {
             firebase.initializeApp(firebaseConfig);
         }
+        
         const db = firebase.database();
         
-        // Cek koneksi
+        // 3. CEK KONEKSI
         db.ref('.info/connected').on('value', function(snapshot) {
             if (snapshot.val() === true) {
-                document.getElementById('status').innerText = "Terhubung (Live)";
+                document.getElementById('status').innerText = "✅ Terhubung ke Database (Live)";
+                document.getElementById('status').className = "text-green-600 font-bold mb-4";
             }
         });
-
     // --- DATA & LOGIC ---
     const groupsData = {'A': ['Mexico', 'South Africa', 'Rep. of Korea', 'Czech Rep.'], 'B': ['Canada', 'Bosnia/Herzeg.', 'Qatar', 'Switzerland'], 'C': ['Brazil', 'Morocco', 'Haiti', 'Scotland'], 'D': ['USA', 'Paraguay', 'Australia', 'Turkey'], 'E': ['Germany', 'Curaçao', 'Ivory Coast', 'Ecuador'], 'F': ['Netherlands', 'Japan', 'Sweden', 'Tunisia'], 'G': ['Belgium', 'Egypt', 'IR Iran', 'New Zealand'], 'H': ['Spain', 'Cape Verde', 'Saudi Arabia', 'Uruguay'], 'I': ['France', 'Senegal', 'Iraq', 'Norway'], 'J': ['Argentina', 'Algeria', 'Austria', 'Jordan'], 'K': ['Portugal', 'DR Congo', 'Uzbekistan', 'Colombia'], 'L': ['England', 'Croatia', 'Ghana', 'Panama']};
     const groupMatchesWIB = {
