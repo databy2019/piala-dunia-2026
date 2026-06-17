@@ -2,404 +2,73 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simulator Piala Dunia 2026 (Live Database)</title>
+    <title>Simulator Piala Dunia 2026</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Firebase SDK V8 -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-    <style>
-        input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
-        .hidden { display: none; }
-    </style>
 </head>
-<body class="bg-slate-100 text-slate-800 font-sans p-4">
+<body class="bg-slate-100 p-4">
+    <div class="max-w-7xl mx-auto">
+        <header class="text-center mb-6">
+            <h1 class="text-4xl font-extrabold text-blue-900 mb-2">Piala Dunia 2026 Simulator</h1>
+            <p id="status" class="font-bold text-yellow-600">Menghubungkan ke Database...</p>
+            <button onclick="resetData()" class="mt-2 bg-red-500 text-white px-4 py-2 rounded text-sm">🔄 Reset Database</button>
+        </header>
 
-<div class="max-w-7xl mx-auto">
-    <header class="text-center mb-6">
-        <h1 class="text-4xl font-extrabold text-blue-900 mb-2">Piala Dunia 2026 Simulator</h1>
-        <p class="text-slate-600 mb-2">Database: <span id="status" class="font-bold text-yellow-600">Menghubungkan...</span></p>
-        <button onclick="resetData()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded shadow font-semibold transition-colors text-sm">🔄 Reset Database (Global)</button>
-    </header>
+        <div class="flex justify-center space-x-4 mb-8">
+            <button id="tab-group-btn" onclick="switchTab('group')" class="px-6 py-2.5 font-bold rounded-lg shadow bg-blue-900 text-white">⚽ Fase Grup</button>
+            <button id="tab-ko-btn" onclick="switchTab('ko')" class="px-6 py-2.5 font-bold rounded-lg shadow bg-white text-slate-700 hover:bg-slate-200">🏆 Babak Gugur</button>
+        </div>
 
-    <div class="flex justify-center space-x-4 mb-8">
-        <button id="tab-group-btn" onclick="switchTab('group')" class="px-6 py-2.5 font-bold rounded-lg shadow bg-blue-900 text-white">⚽ Fase Grup</button>
-        <button id="tab-ko-btn" onclick="switchTab('ko')" class="px-6 py-2.5 font-bold rounded-lg shadow bg-white text-slate-700 hover:bg-slate-200">🏆 Babak Gugur</button>
+        <div id="tab-group-content" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"></div>
+        <div id="tab-ko-content" class="hidden space-y-12"></div>
     </div>
 
-    <div id="tab-group-content" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"></div>
-    <div id="tab-ko-content" class="hidden space-y-12"></div>
-</div>
-
-<script>
-    // Import the functions you need from the SDKs you need
-  //import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
-  // TODO: Add SDKs for Firebase products that you want to use
-  // https://firebase.google.com/docs/web/setup#available-libraries
-
-  // Your web app's Firebase configuration
-  const firebaseConfig = {
-    apiKey: "AIzaSyCQIgOEzY_cJkn1BP9AaF5qeVWgbLlfnkM",
-    authDomain: "database-43275.firebaseapp.com",
-    databaseURL: "https://database-43275-default-rtdb.asia-southeast1.firebasedatabase.app",
-    projectId: "database-43275",
-    storageBucket: "database-43275.firebasestorage.app",
-    messagingSenderId: "385166343288",
-    appId: "1:385166343288:web:8710cb2fbf1bd746f1418d"
-  };
-
-  // 2. INISIALISASI (Tanpa Import)
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-        }
-        
+    <script>
+        // --- 1. KONFIGURASI FIREBASE ---
+        const firebaseConfig = {
+            apiKey: "ISI_API_KEY_ANDA",
+            authDomain: "database-43275.firebaseapp.com",
+            databaseURL: "https://database-43275-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "database-43275",
+            storageBucket: "database-43275.appspot.com",
+            messagingSenderId: "385166343288",
+            appId: "1:385166343288:web:8710cb2fbf1bd746f1418d"
+        };
+        firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-        
-        // 3. CEK KONEKSI
-        db.ref('.info/connected').on('value', function(snapshot) {
-            if (snapshot.val() === true) {
+
+        // --- 2. DATA ---
+        const groupsData = {'A': ['Mexico', 'South Africa', 'Rep. of Korea', 'Czech Rep.'], 'B': ['Canada', 'Bosnia/Herzeg.', 'Qatar', 'Switzerland'], 'C': ['Brazil', 'Morocco', 'Haiti', 'Scotland'], 'D': ['USA', 'Paraguay', 'Australia', 'Turkey'], 'E': ['Germany', 'Curaçao', 'Ivory Coast', 'Ecuador'], 'F': ['Netherlands', 'Japan', 'Sweden', 'Tunisia'], 'G': ['Belgium', 'Egypt', 'IR Iran', 'New Zealand'], 'H': ['Spain', 'Cape Verde', 'Saudi Arabia', 'Uruguay'], 'I': ['France', 'Senegal', 'Iraq', 'Norway'], 'J': ['Argentina', 'Algeria', 'Austria', 'Jordan'], 'K': ['Portugal', 'DR Congo', 'Uzbekistan', 'Colombia'], 'L': ['England', 'Croatia', 'Ghana', 'Panama']};
+        const groupMatchesWIB = {"A": [[0, 1, "12 Jun, 04:00 WIB"], [2, 3, "12 Jun, 11:00 WIB"], [3, 1, "19 Jun, 01:00 WIB"], [0, 2, "19 Jun, 10:00 WIB"], [3, 0, "25 Jun, 10:00 WIB"], [1, 2, "25 Jun, 10:00 WIB"]], "B": [[0, 1, "13 Jun, 04:00 WIB"], [2, 3, "14 Jun, 04:00 WIB"], [3, 1, "19 Jun, 04:00 WIB"], [0, 2, "19 Jun, 07:00 WIB"], [3, 0, "25 Jun, 04:00 WIB"], [1, 2, "25 Jun, 04:00 WIB"]], "C": [[2, 3, "14 Jun, 10:00 WIB"], [0, 1, "14 Jun, 07:00 WIB"], [0, 2, "20 Jun, 09:30 WIB"], [3, 1, "20 Jun, 07:00 WIB"], [3, 0, "25 Jun, 07:00 WIB"], [1, 2, "25 Jun, 07:00 WIB"]], "D": [[0, 1, "13 Jun, 10:00 WIB"], [2, 3, "14 Jun, 13:00 WIB"], [3, 1, "20 Jun, 12:00 WIB"], [0, 2, "20 Jun, 04:00 WIB"], [3, 0, "26 Jun, 11:00 WIB"], [1, 2, "26 Jun, 11:00 WIB"]], "E": [[2, 3, "15 Jun, 08:00 WIB"], [0, 1, "15 Jun, 02:00 WIB"], [0, 2, "21 Jun, 05:00 WIB"], [3, 1, "21 Jun, 09:00 WIB"], [1, 2, "26 Jun, 05:00 WIB"], [3, 0, "26 Jun, 05:00 WIB"]], "F": [[0, 1, "15 Jun, 05:00 WIB"], [2, 3, "15 Jun, 11:00 WIB"], [0, 2, "21 Jun, 02:00 WIB"], [3, 1, "21 Jun, 13:00 WIB"], [1, 2, "26 Jun, 08:00 WIB"], [3, 0, "26 Jun, 08:00 WIB"]], "G": [[2, 3, "16 Jun, 10:00 WIB"], [0, 1, "16 Jun, 04:00 WIB"], [0, 2, "22 Jun, 04:00 WIB"], [3, 1, "22 Jun, 10:00 WIB"], [1, 2, "27 Jun, 12:00 WIB"], [3, 0, "27 Jun, 12:00 WIB"]], "H": [[2, 3, "16 Jun, 07:00 WIB"], [0, 1, "16 Jun, 01:00 WIB"], [3, 1, "22 Jun, 07:00 WIB"], [0, 2, "22 Jun, 01:00 WIB"], [1, 2, "27 Jun, 09:00 WIB"], [3, 0, "27 Jun, 09:00 WIB"]], "I": [[0, 1, "17 Jun, 04:00 WIB"], [2, 3, "17 Jun, 07:00 WIB"], [3, 1, "23 Jun, 09:00 WIB"], [0, 2, "23 Jun, 06:00 WIB"], [3, 0, "27 Jun, 04:00 WIB"], [1, 2, "27 Jun, 04:00 WIB"]], "J": [[0, 1, "17 Jun, 10:00 WIB"], [2, 3, "17 Jun, 13:00 WIB"], [0, 2, "23 Jun, 02:00 WIB"], [3, 1, "23 Jun, 12:00 WIB"], [1, 2, "28 Jun, 11:00 WIB"], [3, 0, "28 Jun, 11:00 WIB"]], "K": [[0, 1, "18 Jun, 02:00 WIB"], [2, 3, "18 Jun, 11:00 WIB"], [0, 2, "24 Jun, 02:00 WIB"], [3, 1, "24 Jun, 11:00 WIB"], [3, 0, "28 Jun, 08:30 WIB"], [1, 2, "28 Jun, 08:30 WIB"]], "L": [[2, 3, "18 Jun, 08:00 WIB"], [0, 1, "18 Jun, 05:00 WIB"], [0, 2, "24 Jun, 05:00 WIB"], [3, 1, "24 Jun, 08:00 WIB"], [3, 0, "28 Jun, 06:00 WIB"], [1, 2, "28 Jun, 06:00 WIB"]]};
+        let scores = { groups: {}, knockout: {} };
+        let currentTab = 'group';
+
+        // --- 3. FUNGSI LOGIKA ---
+        function init() {
+            db.ref('data_skor').on('value', (snap) => {
+                scores = snap.val() || { groups: {}, knockout: {} };
                 document.getElementById('status').innerText = "✅ Terhubung ke Database (Live)";
-                document.getElementById('status').className = "text-green-600 font-bold mb-4";
-            }
-        });
-    // --- DATA & LOGIC ---
-    const groupsData = {'A': ['Mexico', 'South Africa', 'Rep. of Korea', 'Czech Rep.'], 'B': ['Canada', 'Bosnia/Herzeg.', 'Qatar', 'Switzerland'], 'C': ['Brazil', 'Morocco', 'Haiti', 'Scotland'], 'D': ['USA', 'Paraguay', 'Australia', 'Turkey'], 'E': ['Germany', 'Curaçao', 'Ivory Coast', 'Ecuador'], 'F': ['Netherlands', 'Japan', 'Sweden', 'Tunisia'], 'G': ['Belgium', 'Egypt', 'IR Iran', 'New Zealand'], 'H': ['Spain', 'Cape Verde', 'Saudi Arabia', 'Uruguay'], 'I': ['France', 'Senegal', 'Iraq', 'Norway'], 'J': ['Argentina', 'Algeria', 'Austria', 'Jordan'], 'K': ['Portugal', 'DR Congo', 'Uzbekistan', 'Colombia'], 'L': ['England', 'Croatia', 'Ghana', 'Panama']};
-    const groupMatchesWIB = {
-                A: [
-                    [0, 1, "12 Jun 2026, 02:00 WIB"],
-                    [2, 3, "12 Jun 2026, 09:00 WIB"],
-                    [3, 1, "19 Jun 2026, 23:00 WIB"],
-                    [0, 2, "19 Jun 2026, 08:00 WIB"],
-                    [3, 0, "25 Jun 2026, 08:00 WIB"],
-                    [1, 2, "25 Jun 2026, 08:00 WIB"],
-                ],
-                B: [
-                    [0, 1, "13 Jun 2026, 04:00 WIB"],
-                    [2, 3, "14 Jun 2026, 04:00 WIB"],
-                    [3, 1, "19 Jun 2026, 04:00 WIB"],
-                    [0, 2, "19 Jun 2026, 07:00 WIB"],
-                    [3, 0, "25 Jun 2026, 04:00 WIB"],
-                    [1, 2, "25 Jun 2026, 04:00 WIB"],
-                ],
-                C: [
-                    [2, 3, "14 Jun 2026, 10:00 WIB"],
-                    [0, 1, "14 Jun 2026, 07:00 WIB"],
-                    [0, 2, "20 Jun 2026, 09:30 WIB"],
-                    [3, 1, "20 Jun 2026, 07:00 WIB"],
-                    [3, 0, "25 Jun 2026, 07:00 WIB"],
-                    [1, 2, "25 Jun 2026, 07:00 WIB"],
-                ],
-                D: [
-                    [0, 1, "13 Jun 2026, 10:00 WIB"],
-                    [2, 3, "14 Jun 2026, 13:00 WIB"],
-                    [3, 1, "20 Jun 2026, 12:00 WIB"],
-                    [0, 2, "20 Jun 2026, 04:00 WIB"],
-                    [3, 0, "26 Jun 2026, 11:00 WIB"],
-                    [1, 2, "26 Jun 2026, 11:00 WIB"],
-                ],
-                E: [
-                    [2, 3, "15 Jun 2026, 08:00 WIB"],
-                    [0, 1, "15 Jun 2026, 02:00 WIB"],
-                    [0, 2, "21 Jun 2026, 05:00 WIB"],
-                    [3, 1, "21 Jun 2026, 09:00 WIB"],
-                    [1, 2, "26 Jun 2026, 05:00 WIB"],
-                    [3, 0, "26 Jun 2026, 05:00 WIB"],
-                ],
-                F: [
-                    [0, 1, "15 Jun 2026, 05:00 WIB"],
-                    [2, 3, "15 Jun 2026, 11:00 WIB"],
-                    [0, 2, "21 Jun 2026, 02:00 WIB"],
-                    [3, 1, "21 Jun 2026, 13:00 WIB"],
-                    [1, 2, "26 Jun 2026, 08:00 WIB"],
-                    [3, 0, "26 Jun 2026, 08:00 WIB"],
-                ],
-                G: [
-                    [2, 3, "16 Jun 2026, 10:00 WIB"],
-                    [0, 1, "16 Jun 2026, 04:00 WIB"],
-                    [0, 2, "22 Jun 2026, 04:00 WIB"],
-                    [3, 1, "22 Jun 2026, 10:00 WIB"],
-                    [1, 2, "27 Jun 2026, 12:00 WIB"],
-                    [3, 0, "27 Jun 2026, 12:00 WIB"],
-                ],
-                H: [
-                    [2, 3, "16 Jun 2026, 07:00 WIB"],
-                    [0, 1, "16 Jun 2026, 01:00 WIB"],
-                    [3, 1, "22 Jun 2026, 07:00 WIB"],
-                    [0, 2, "22 Jun 2026, 01:00 WIB"],
-                    [1, 2, "27 Jun 2026, 09:00 WIB"],
-                    [3, 0, "27 Jun 2026, 09:00 WIB"],
-                ],
-                I: [
-                    [0, 1, "17 Jun 2026, 04:00 WIB"],
-                    [2, 3, "17 Jun 2026, 07:00 WIB"],
-                    [3, 1, "23 Jun 2026, 09:00 WIB"],
-                    [0, 2, "23 Jun 2026, 06:00 WIB"],
-                    [3, 0, "27 Jun 2026, 04:00 WIB"],
-                    [1, 2, "27 Jun 2026, 04:00 WIB"],
-                ],
-                J: [
-                    [0, 1, "17 Jun 2026, 10:00 WIB"],
-                    [2, 3, "17 Jun 2026, 13:00 WIB"],
-                    [0, 2, "23 Jun 2026, 02:00 WIB"],
-                    [3, 1, "23 Jun 2026, 12:00 WIB"],
-                    [1, 2, "28 Jun 2026, 11:00 WIB"],
-                    [3, 0, "28 Jun 2026, 11:00 WIB"],
-                ],
-                K: [
-                    [0, 1, "18 Jun 2026, 02:00 WIB"],
-                    [2, 3, "18 Jun 2026, 11:00 WIB"],
-                    [0, 2, "24 Jun 2026, 02:00 WIB"],
-                    [3, 1, "24 Jun 2026, 11:00 WIB"],
-                    [3, 0, "28 Jun 2026, 08:30 WIB"],
-                    [1, 2, "28 Jun 2026, 08:30 WIB"],
-                ],
-                L: [
-                    [2, 3, "18 Jun 2026, 08:00 WIB"],
-                    [0, 1, "18 Jun 2026, 05:00 WIB"],
-                    [0, 2, "24 Jun 2026, 05:00 WIB"],
-                    [3, 1, "24 Jun 2026, 08:00 WIB"],
-                    [3, 0, "28 Jun 2026, 06:00 WIB"],
-                    [1, 2, "28 Jun 2026, 06:00 WIB"],
-                ],
-            };
-            const koTimes = {
-                73: "29 Jun 2026, 04:00 WIB",
-                74: "30 Jun 2026, 05:30 WIB",
-                75: "30 Jun 2026, 10:00 WIB",
-                76: "30 Jun 2026, 02:00 WIB",
-                77: "01 Jul 2026, 06:00 WIB",
-                78: "01 Jul 2026, 02:00 WIB",
-                79: "01 Jul 2026, 10:00 WIB",
-                80: "02 Jul 2026, 01:00 WIB",
-                81: "02 Jul 2026, 09:00 WIB",
-                82: "02 Jul 2026, 05:00 WIB",
-                83: "03 Jul 2026, 08:00 WIB",
-                84: "03 Jul 2026, 04:00 WIB",
-                85: "03 Jul 2026, 12:00 WIB",
-                86: "04 Jul 2026, 07:00 WIB",
-                87: "04 Jul 2026, 10:30 WIB",
-                88: "04 Jul 2026, 03:00 WIB",
-                89: "05 Jul 2026, 06:00 WIB",
-                90: "05 Jul 2026, 02:00 WIB",
-                91: "06 Jul 2026, 05:00 WIB",
-                92: "06 Jul 2026, 09:00 WIB",
-                93: "07 Jul 2026, 04:00 WIB",
-                94: "07 Jul 2026, 09:00 WIB",
-                95: "08 Jul 2026, 01:00 WIB",
-                96: "08 Jul 2026, 05:00 WIB",
-                97: "10 Jul 2026, 05:00 WIB",
-                98: "11 Jul 2026, 04:00 WIB",
-                99: "12 Jul 2026, 06:00 WIB",
-                100: "12 Jul 2026, 10:00 WIB",
-                101: "15 Jul 2026, 04:00 WIB",
-                102: "16 Jul 2026, 04:00 WIB",
-                103: "19 Jul 2026, 06:00 WIB",
-                104: "20 Jul 2026, 04:00 WIB",
-            };
-            const koStructure = {
-                r32: [
-                    {
-                        id: 73,
-                        t1Home: "1A",
-                        t2Home: "3rd_1",
-                        nextMatch: 89,
-                        slot: "t1",
-                    },
-                    {
-                        id: 74,
-                        t1Home: "1B",
-                        t2Home: "3rd_2",
-                        nextMatch: 89,
-                        slot: "t2",
-                    },
-                    {
-                        id: 75,
-                        t1Home: "1C",
-                        t2Home: "2D",
-                        nextMatch: 90,
-                        slot: "t1",
-                    },
-                    {
-                        id: 76,
-                        t1Home: "1D",
-                        t2Home: "2C",
-                        nextMatch: 90,
-                        slot: "t2",
-                    },
-                    {
-                        id: 77,
-                        t1Home: "1E",
-                        t2Home: "3rd_3",
-                        nextMatch: 91,
-                        slot: "t1",
-                    },
-                    {
-                        id: 78,
-                        t1Home: "1F",
-                        t2Home: "2E",
-                        nextMatch: 91,
-                        slot: "t2",
-                    },
-                    {
-                        id: 79,
-                        t1Home: "1G",
-                        t2Home: "3rd_4",
-                        nextMatch: 92,
-                        slot: "t1",
-                    },
-                    {
-                        id: 80,
-                        t1Home: "1H",
-                        t2Home: "2G",
-                        nextMatch: 92,
-                        slot: "t2",
-                    },
-                    {
-                        id: 81,
-                        t1Home: "1I",
-                        t2Home: "3rd_5",
-                        nextMatch: 93,
-                        slot: "t1",
-                    },
-                    {
-                        id: 82,
-                        t1Home: "1J",
-                        t2Home: "2K",
-                        nextMatch: 93,
-                        slot: "t2",
-                    },
-                    {
-                        id: 83,
-                        t1Home: "1K",
-                        t2Home: "2J",
-                        nextMatch: 94,
-                        slot: "t1",
-                    },
-                    {
-                        id: 84,
-                        t1Home: "1L",
-                        t2Home: "3rd_6",
-                        nextMatch: 94,
-                        slot: "t2",
-                    },
-                    {
-                        id: 85,
-                        t1Home: "2A",
-                        t2Home: "2F",
-                        nextMatch: 95,
-                        slot: "t1",
-                    },
-                    {
-                        id: 86,
-                        t1Home: "2B",
-                        t2Home: "2H",
-                        nextMatch: 95,
-                        slot: "t2",
-                    },
-                    {
-                        id: 87,
-                        t1Home: "2I",
-                        t2Home: "3rd_7",
-                        nextMatch: 96,
-                        slot: "t1",
-                    },
-                    {
-                        id: 88,
-                        t1Home: "2L",
-                        t2Home: "3rd_8",
-                        nextMatch: 96,
-                        slot: "t2",
-                    },
-                ],
-                r16: [
-                    { id: 89, from: [73, 74], nextMatch: 97, slot: "t1" },
-                    { id: 90, from: [75, 76], nextMatch: 97, slot: "t2" },
-                    { id: 91, from: [77, 78], nextMatch: 98, slot: "t1" },
-                    { id: 92, from: [79, 80], nextMatch: 98, slot: "t2" },
-                    { id: 93, from: [81, 82], nextMatch: 99, slot: "t1" },
-                    { id: 94, from: [83, 84], nextMatch: 99, slot: "t2" },
-                    { id: 95, from: [85, 86], nextMatch: 100, slot: "t1" },
-                    { id: 96, from: [87, 88], nextMatch: 100, slot: "t2" },
-                ],
-                qf: [
-                    { id: 97, from: [89, 90], nextMatch: 101, slot: "t1" },
-                    { id: 98, from: [91, 92], nextMatch: 101, slot: "t2" },
-                    { id: 99, from: [93, 94], nextMatch: 102, slot: "t1" },
-                    { id: 100, from: [95, 96], nextMatch: 102, slot: "t2" },
-                ],
-                sf: [
-                    {
-                        id: 101,
-                        from: [97, 98],
-                        nextMatch: 104,
-                        slot: "t1",
-                        loseToMatch: 103,
-                        loseSlot: "t1",
-                    },
-                    {
-                        id: 102,
-                        from: [99, 100],
-                        nextMatch: 104,
-                        slot: "t2",
-                        loseToMatch: 103,
-                        loseSlot: "t2",
-                    },
-                ],
-                final: [
-                    { id: 103, label: "Juara Ke-3", from: ["L101", "L102"] },
-                    { id: 104, label: "Final Utama", from: [101, 102] },
-                ],
-            };
-    let scores = { groups: {}, knockout: {} };
-    let currentTab = 'group';
-
-    // FUNGSI UTAMA
-    function init() {
-        // Ambil data dari Firebase secara realtime
-        db.ref('data_skor').on('value', (snapshot) => {
-            const data = snapshot.val();
-            
-            // JIKA DATA KOSONG (Database baru), kita paksa inisialisasi agar aplikasi tidak hang
-            if (!data) {
-                console.log("Database kosong, melakukan inisialisasi awal...");
-                scores = { groups: {}, knockout: {} };
-                // Kirim data awal ke Firebase agar database tidak null lagi
-                saveData(); 
-            } else {
-                scores = data;
-                document.getElementById('status').innerText = "Terhubung (Live)";
-                document.getElementById('status').className = "text-green-600 font-bold";
-            }
-            
-            // Panggil render setelah data dipastikan ada
-            renderAll();
-        });
-    }
-
-    function renderAll() {
-        console.log("Memulai render..."); // Cek di console apakah ini muncul
-        if(currentTab === 'group') {
-            renderGroups();
-        } else {
-            renderKnockout();
+                renderAll();
+            });
         }
-    }
-
-    function saveData() {
-        db.ref('data_skor').set(scores);
-    }
-
-    function onGroupScore(g, i, isT1, v) {
-        if(!scores.groups[g]) scores.groups[g] = {};
-        if(!scores.groups[g][i]) scores.groups[g][i] = {t1:'', t2:''};
-        isT1 ? scores.groups[g][i].t1 = v : scores.groups[g][i].t2 = v;
-        saveData();
-    }
-
-    // (Sertakan sisa fungsi renderGroups, renderKnockout, calculateStandings, dll dari kode sebelumnya di sini)
-    // Pastikan pada bagian input, class css nya seperti ini agar warnanya beda:
-    // class="w-10 h-8 text-center font-bold text-blue-700 bg-blue-50 border border-blue-300 rounded focus:bg-blue-100 outline-none"
-
-    init();
-</script>
+        function renderAll() {
+            if(currentTab === 'group') renderGroups(); else renderKnockout();
+        }
+        function switchTab(t) {
+            currentTab = t;
+            document.getElementById('tab-group-content').classList.toggle('hidden', t !== 'group');
+            document.getElementById('tab-ko-content').classList.toggle('hidden', t !== 'ko');
+            renderAll();
+        }
+        function saveData() { db.ref('data_skor').set(scores); }
+        function resetData() { if(confirm("Hapus semua?")) { db.ref('data_skor').set({groups:{}, knockout:{}}); location.reload(); } }
+        
+        // (Sertakan kembali fungsi calculateStandings, renderGroups, renderKnockout, dll dari kode sebelumnya di sini)
+        // ... (Fungsi-fungsi renderGroups, updateGroupUI, onGroupScore, renderKnockout, onKoScore, setPen, dll harus ada di sini)
+        
+        init();
+    </script>
 </body>
 </html>
