@@ -1,74 +1,600 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simulator Piala Dunia 2026 (Jadwal WIB)</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        input[type=number]::-webkit-inner-spin-button, 
-        input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
-    </style>
-</head>
-<body class="bg-slate-100 text-slate-800 font-sans">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Simulator Piala Dunia 2026</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <style>
+            input[type="number"]::-webkit-inner-spin-button,
+            input[type="number"]::-webkit-outer-spin-button {
+                -webkit-appearance: none;
+                margin: 0;
+            }
+            .hidden {
+                display: none;
+            }
+        </style>
+    </head>
+    <body class="bg-slate-100 text-slate-800 font-sans p-4">
+        <div class="max-w-7xl mx-auto">
+            <header class="text-center mb-6">
+                <h1 class="text-4xl font-extrabold text-blue-900 mb-2">
+                    Piala Dunia 2026 Simulator
+                </h1>
+                <p class="text-slate-600 mb-4">Jadwal Pertandingan (WIB)</p>
+                <button
+                    onclick="resetData()"
+                    class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded shadow font-semibold transition-colors text-sm"
+                >
+                    🔄 Reset Semua Skor
+                </button>
+            </header>
 
-<div class="max-w-7xl mx-auto p-4 sm:p-6">
-    <header class="text-center mb-6">
-        <h1 class="text-4xl font-extrabold text-blue-900 mb-2">Piala Dunia 2026 Simulator</h1>
-        <p class="text-slate-600 mb-4">Format 48 Tim • Jadwal Pertandingan dalam Waktu Indonesia Barat (WIB)</p>
-        
-        <button onclick="resetData()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded shadow font-semibold transition-colors text-sm">
-            🔄 Reset Semua Skor
-        </button>
-    </header>
+            <div class="flex justify-center space-x-4 mb-8">
+                <button
+                    id="tab-group-btn"
+                    onclick="switchTab('group')"
+                    class="px-6 py-2.5 font-bold rounded-lg shadow bg-blue-900 text-white"
+                >
+                    ⚽ Fase Grup
+                </button>
+                <button
+                    id="tab-ko-btn"
+                    onclick="switchTab('ko')"
+                    class="px-6 py-2.5 font-bold rounded-lg shadow bg-white text-slate-700 hover:bg-slate-200"
+                >
+                    🏆 Babak Gugur
+                </button>
+            </div>
 
-    <div class="flex justify-center space-x-4 mb-8">
-        <button id="tab-group-btn" onclick="switchTab('group')" class="px-6 py-2.5 font-bold rounded-lg shadow transition-all bg-blue-900 text-white">
-            ⚽ Fase Grup (A - L)
-        </button>
-        <button id="tab-ko-btn" onclick="switchTab('ko')" class="px-6 py-2.5 font-bold rounded-lg shadow transition-all bg-white text-slate-700 hover:bg-slate-200">
-            🏆 Babak Gugur
-        </button>
-    </div>
+            <div
+                id="tab-group-content"
+                class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"
+            ></div>
 
-    <div id="tab-group-content" class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+            <div id="tab-ko-content" class="hidden space-y-12"></div>
         </div>
 
-    <div id="tab-ko-content" class="hidden space-y-12">
-        </div>
-</div>
+        <script>
+            const groupsData = {
+                A: ["Mexico", "South Africa", "Rep. of Korea", "Czech Rep."],
+                B: ["Canada", "Bosnia/Herzeg.", "Qatar", "Switzerland"],
+                C: ["Brazil", "Morocco", "Haiti", "Scotland"],
+                D: ["USA", "Paraguay", "Australia", "Turkey"],
+                E: ["Germany", "Curaçao", "Ivory Coast", "Ecuador"],
+                F: ["Netherlands", "Japan", "Sweden", "Tunisia"],
+                G: ["Belgium", "Egypt", "IR Iran", "New Zealand"],
+                H: ["Spain", "Cape Verde", "Saudi Arabia", "Uruguay"],
+                I: ["France", "Senegal", "Iraq", "Norway"],
+                J: ["Argentina", "Algeria", "Austria", "Jordan"],
+                K: ["Portugal", "DR Congo", "Uzbekistan", "Colombia"],
+                L: ["England", "Croatia", "Ghana", "Panama"],
+            };
+            const groupMatchesWIB = {
+                A: [
+                    [0, 1, "12 Jun 2026, 02:00 WIB"],
+                    [2, 3, "12 Jun 2026, 09:00 WIB"],
+                    [3, 1, "19 Jun 2026, 23:00 WIB"],
+                    [0, 2, "19 Jun 2026, 08:00 WIB"],
+                    [3, 0, "25 Jun 2026, 08:00 WIB"],
+                    [1, 2, "25 Jun 2026, 08:00 WIB"],
+                ],
+                B: [
+                    [0, 1, "13 Jun 2026, 04:00 WIB"],
+                    [2, 3, "14 Jun 2026, 04:00 WIB"],
+                    [3, 1, "19 Jun 2026, 04:00 WIB"],
+                    [0, 2, "19 Jun 2026, 07:00 WIB"],
+                    [3, 0, "25 Jun 2026, 04:00 WIB"],
+                    [1, 2, "25 Jun 2026, 04:00 WIB"],
+                ],
+                C: [
+                    [2, 3, "14 Jun 2026, 10:00 WIB"],
+                    [0, 1, "14 Jun 2026, 07:00 WIB"],
+                    [0, 2, "20 Jun 2026, 09:30 WIB"],
+                    [3, 1, "20 Jun 2026, 07:00 WIB"],
+                    [3, 0, "25 Jun 2026, 07:00 WIB"],
+                    [1, 2, "25 Jun 2026, 07:00 WIB"],
+                ],
+                D: [
+                    [0, 1, "13 Jun 2026, 10:00 WIB"],
+                    [2, 3, "14 Jun 2026, 13:00 WIB"],
+                    [3, 1, "20 Jun 2026, 12:00 WIB"],
+                    [0, 2, "20 Jun 2026, 04:00 WIB"],
+                    [3, 0, "26 Jun 2026, 11:00 WIB"],
+                    [1, 2, "26 Jun 2026, 11:00 WIB"],
+                ],
+                E: [
+                    [2, 3, "15 Jun 2026, 08:00 WIB"],
+                    [0, 1, "15 Jun 2026, 02:00 WIB"],
+                    [0, 2, "21 Jun 2026, 05:00 WIB"],
+                    [3, 1, "21 Jun 2026, 09:00 WIB"],
+                    [1, 2, "26 Jun 2026, 05:00 WIB"],
+                    [3, 0, "26 Jun 2026, 05:00 WIB"],
+                ],
+                F: [
+                    [0, 1, "15 Jun 2026, 05:00 WIB"],
+                    [2, 3, "15 Jun 2026, 11:00 WIB"],
+                    [0, 2, "21 Jun 2026, 02:00 WIB"],
+                    [3, 1, "21 Jun 2026, 13:00 WIB"],
+                    [1, 2, "26 Jun 2026, 08:00 WIB"],
+                    [3, 0, "26 Jun 2026, 08:00 WIB"],
+                ],
+                G: [
+                    [2, 3, "16 Jun 2026, 10:00 WIB"],
+                    [0, 1, "16 Jun 2026, 04:00 WIB"],
+                    [0, 2, "22 Jun 2026, 04:00 WIB"],
+                    [3, 1, "22 Jun 2026, 10:00 WIB"],
+                    [1, 2, "27 Jun 2026, 12:00 WIB"],
+                    [3, 0, "27 Jun 2026, 12:00 WIB"],
+                ],
+                H: [
+                    [2, 3, "16 Jun 2026, 07:00 WIB"],
+                    [0, 1, "16 Jun 2026, 01:00 WIB"],
+                    [3, 1, "22 Jun 2026, 07:00 WIB"],
+                    [0, 2, "22 Jun 2026, 01:00 WIB"],
+                    [1, 2, "27 Jun 2026, 09:00 WIB"],
+                    [3, 0, "27 Jun 2026, 09:00 WIB"],
+                ],
+                I: [
+                    [0, 1, "17 Jun 2026, 04:00 WIB"],
+                    [2, 3, "17 Jun 2026, 07:00 WIB"],
+                    [3, 1, "23 Jun 2026, 09:00 WIB"],
+                    [0, 2, "23 Jun 2026, 06:00 WIB"],
+                    [3, 0, "27 Jun 2026, 04:00 WIB"],
+                    [1, 2, "27 Jun 2026, 04:00 WIB"],
+                ],
+                J: [
+                    [0, 1, "17 Jun 2026, 10:00 WIB"],
+                    [2, 3, "17 Jun 2026, 13:00 WIB"],
+                    [0, 2, "23 Jun 2026, 02:00 WIB"],
+                    [3, 1, "23 Jun 2026, 12:00 WIB"],
+                    [1, 2, "28 Jun 2026, 11:00 WIB"],
+                    [3, 0, "28 Jun 2026, 11:00 WIB"],
+                ],
+                K: [
+                    [0, 1, "18 Jun 2026, 02:00 WIB"],
+                    [2, 3, "18 Jun 2026, 11:00 WIB"],
+                    [0, 2, "24 Jun 2026, 02:00 WIB"],
+                    [3, 1, "24 Jun 2026, 11:00 WIB"],
+                    [3, 0, "28 Jun 2026, 08:30 WIB"],
+                    [1, 2, "28 Jun 2026, 08:30 WIB"],
+                ],
+                L: [
+                    [2, 3, "18 Jun 2026, 08:00 WIB"],
+                    [0, 1, "18 Jun 2026, 05:00 WIB"],
+                    [0, 2, "24 Jun 2026, 05:00 WIB"],
+                    [3, 1, "24 Jun 2026, 08:00 WIB"],
+                    [3, 0, "28 Jun 2026, 06:00 WIB"],
+                    [1, 2, "28 Jun 2026, 06:00 WIB"],
+                ],
+            };
+            const koTimes = {
+                73: "29 Jun 2026, 04:00 WIB",
+                74: "30 Jun 2026, 05:30 WIB",
+                75: "30 Jun 2026, 10:00 WIB",
+                76: "30 Jun 2026, 02:00 WIB",
+                77: "01 Jul 2026, 06:00 WIB",
+                78: "01 Jul 2026, 02:00 WIB",
+                79: "01 Jul 2026, 10:00 WIB",
+                80: "02 Jul 2026, 01:00 WIB",
+                81: "02 Jul 2026, 09:00 WIB",
+                82: "02 Jul 2026, 05:00 WIB",
+                83: "03 Jul 2026, 08:00 WIB",
+                84: "03 Jul 2026, 04:00 WIB",
+                85: "03 Jul 2026, 12:00 WIB",
+                86: "04 Jul 2026, 07:00 WIB",
+                87: "04 Jul 2026, 10:30 WIB",
+                88: "04 Jul 2026, 03:00 WIB",
+                89: "05 Jul 2026, 06:00 WIB",
+                90: "05 Jul 2026, 02:00 WIB",
+                91: "06 Jul 2026, 05:00 WIB",
+                92: "06 Jul 2026, 09:00 WIB",
+                93: "07 Jul 2026, 04:00 WIB",
+                94: "07 Jul 2026, 09:00 WIB",
+                95: "08 Jul 2026, 01:00 WIB",
+                96: "08 Jul 2026, 05:00 WIB",
+                97: "10 Jul 2026, 05:00 WIB",
+                98: "11 Jul 2026, 04:00 WIB",
+                99: "12 Jul 2026, 06:00 WIB",
+                100: "12 Jul 2026, 10:00 WIB",
+                101: "15 Jul 2026, 04:00 WIB",
+                102: "16 Jul 2026, 04:00 WIB",
+                103: "19 Jul 2026, 06:00 WIB",
+                104: "20 Jul 2026, 04:00 WIB",
+            };
+            const koStructure = {
+                r32: [
+                    {
+                        id: 73,
+                        t1Home: "1A",
+                        t2Home: "3rd_1",
+                        nextMatch: 89,
+                        slot: "t1",
+                    },
+                    {
+                        id: 74,
+                        t1Home: "1B",
+                        t2Home: "3rd_2",
+                        nextMatch: 89,
+                        slot: "t2",
+                    },
+                    {
+                        id: 75,
+                        t1Home: "1C",
+                        t2Home: "2D",
+                        nextMatch: 90,
+                        slot: "t1",
+                    },
+                    {
+                        id: 76,
+                        t1Home: "1D",
+                        t2Home: "2C",
+                        nextMatch: 90,
+                        slot: "t2",
+                    },
+                    {
+                        id: 77,
+                        t1Home: "1E",
+                        t2Home: "3rd_3",
+                        nextMatch: 91,
+                        slot: "t1",
+                    },
+                    {
+                        id: 78,
+                        t1Home: "1F",
+                        t2Home: "2E",
+                        nextMatch: 91,
+                        slot: "t2",
+                    },
+                    {
+                        id: 79,
+                        t1Home: "1G",
+                        t2Home: "3rd_4",
+                        nextMatch: 92,
+                        slot: "t1",
+                    },
+                    {
+                        id: 80,
+                        t1Home: "1H",
+                        t2Home: "2G",
+                        nextMatch: 92,
+                        slot: "t2",
+                    },
+                    {
+                        id: 81,
+                        t1Home: "1I",
+                        t2Home: "3rd_5",
+                        nextMatch: 93,
+                        slot: "t1",
+                    },
+                    {
+                        id: 82,
+                        t1Home: "1J",
+                        t2Home: "2K",
+                        nextMatch: 93,
+                        slot: "t2",
+                    },
+                    {
+                        id: 83,
+                        t1Home: "1K",
+                        t2Home: "2J",
+                        nextMatch: 94,
+                        slot: "t1",
+                    },
+                    {
+                        id: 84,
+                        t1Home: "1L",
+                        t2Home: "3rd_6",
+                        nextMatch: 94,
+                        slot: "t2",
+                    },
+                    {
+                        id: 85,
+                        t1Home: "2A",
+                        t2Home: "2F",
+                        nextMatch: 95,
+                        slot: "t1",
+                    },
+                    {
+                        id: 86,
+                        t1Home: "2B",
+                        t2Home: "2H",
+                        nextMatch: 95,
+                        slot: "t2",
+                    },
+                    {
+                        id: 87,
+                        t1Home: "2I",
+                        t2Home: "3rd_7",
+                        nextMatch: 96,
+                        slot: "t1",
+                    },
+                    {
+                        id: 88,
+                        t1Home: "2L",
+                        t2Home: "3rd_8",
+                        nextMatch: 96,
+                        slot: "t2",
+                    },
+                ],
+                r16: [
+                    { id: 89, from: [73, 74], nextMatch: 97, slot: "t1" },
+                    { id: 90, from: [75, 76], nextMatch: 97, slot: "t2" },
+                    { id: 91, from: [77, 78], nextMatch: 98, slot: "t1" },
+                    { id: 92, from: [79, 80], nextMatch: 98, slot: "t2" },
+                    { id: 93, from: [81, 82], nextMatch: 99, slot: "t1" },
+                    { id: 94, from: [83, 84], nextMatch: 99, slot: "t2" },
+                    { id: 95, from: [85, 86], nextMatch: 100, slot: "t1" },
+                    { id: 96, from: [87, 88], nextMatch: 100, slot: "t2" },
+                ],
+                qf: [
+                    { id: 97, from: [89, 90], nextMatch: 101, slot: "t1" },
+                    { id: 98, from: [91, 92], nextMatch: 101, slot: "t2" },
+                    { id: 99, from: [93, 94], nextMatch: 102, slot: "t1" },
+                    { id: 100, from: [95, 96], nextMatch: 102, slot: "t2" },
+                ],
+                sf: [
+                    {
+                        id: 101,
+                        from: [97, 98],
+                        nextMatch: 104,
+                        slot: "t1",
+                        loseToMatch: 103,
+                        loseSlot: "t1",
+                    },
+                    {
+                        id: 102,
+                        from: [99, 100],
+                        nextMatch: 104,
+                        slot: "t2",
+                        loseToMatch: 103,
+                        loseSlot: "t2",
+                    },
+                ],
+                final: [
+                    { id: 103, label: "Juara Ke-3", from: ["L101", "L102"] },
+                    { id: 104, label: "Final Utama", from: [101, 102] },
+                ],
+            };
 
-<script>
-    const groupsData = {
-        'A': ['Mexico', 'South Africa', 'Rep. of Korea', 'Czech Rep.'],
-        'B': ['Canada', 'Bosnia/Herzeg.', 'Qatar', 'Switzerland'],
-        'C': ['Brazil', 'Morocco', 'Haiti', 'Scotland'],
-        'D': ['USA', 'Paraguay', 'Australia', 'Turkey'],
-        'E': ['Germany', 'Curaçao', 'Ivory Coast', 'Ecuador'],
-        'F': ['Netherlands', 'Japan', 'Sweden', 'Tunisia'],
-        'G': ['Belgium', 'Egypt', 'IR Iran', 'New Zealand'],
-        'H': ['Spain', 'Cape Verde', 'Saudi Arabia', 'Uruguay'],
-        'I': ['France', 'Senegal', 'Iraq', 'Norway'],
-        'J': ['Argentina', 'Algeria', 'Austria', 'Jordan'],
-        'K': ['Portugal', 'DR Congo', 'Uzbekistan', 'Colombia'],
-        'L': ['England', 'Croatia', 'Ghana', 'Panama']
-    };
+            let scores = { groups: {}, knockout: {} };
+            let currentTab = "group";
 
-    // Format: [Index_Tim1, Index_Tim2, Waktu Pertandingan WIB]
-    const groupMatchesWithTime = {
-        "A": [[0, 1, "12 Jun 2026, 04:00 WIB"], [2, 3, "12 Jun 2026, 11:00 WIB"], [3, 1, "19 Jun 2026, 01:00 WIB"], [0, 2, "19 Jun 2026, 10:00 WIB"], [3, 0, "25 Jun 2026, 10:00 WIB"], [1, 2, "25 Jun 2026, 10:00 WIB"]], 
-        "B": [[0, 1, "13 Jun 2026, 04:00 WIB"], [2, 3, "14 Jun 2026, 04:00 WIB"], [3, 1, "19 Jun 2026, 04:00 WIB"], [0, 2, "19 Jun 2026, 07:00 WIB"], [3, 0, "25 Jun 2026, 04:00 WIB"], [1, 2, "25 Jun 2026, 04:00 WIB"]], 
-        "C": [[2, 3, "14 Jun 2026, 10:00 WIB"], [0, 1, "14 Jun 2026, 07:00 WIB"], [0, 2, "20 Jun 2026, 09:30 WIB"], [3, 1, "20 Jun 2026, 07:00 WIB"], [3, 0, "25 Jun 2026, 07:00 WIB"], [1, 2, "25 Jun 2026, 07:00 WIB"]], 
-        "D": [[0, 1, "13 Jun 2026, 10:00 WIB"], [2, 3, "14 Jun 2026, 13:00 WIB"], [3, 1, "20 Jun 2026, 12:00 WIB"], [0, 2, "20 Jun 2026, 04:00 WIB"], [3, 0, "26 Jun 2026, 11:00 WIB"], [1, 2, "26 Jun 2026, 11:00 WIB"]], 
-        "E": [[2, 3, "15 Jun 2026, 08:00 WIB"], [0, 1, "15 Jun 2026, 02:00 WIB"], [0, 2, "21 Jun 2026, 05:00 WIB"], [3, 1, "21 Jun 2026, 09:00 WIB"], [1, 2, "26 Jun 2026, 05:00 WIB"], [3, 0, "26 Jun 2026, 05:00 WIB"]], 
-        "F": [[0, 1, "15 Jun 2026, 05:00 WIB"], [2, 3, "15 Jun 2026, 11:00 WIB"], [0, 2, "21 Jun 2026, 02:00 WIB"], [3, 1, "21 Jun 2026, 13:00 WIB"], [1, 2, "26 Jun 2026, 08:00 WIB"], [3, 0, "26 Jun 2026, 08:00 WIB"]], 
-        "G": [[2, 3, "16 Jun 2026, 10:00 WIB"], [0, 1, "16 Jun 2026, 04:00 WIB"], [0, 2, "22 Jun 2026, 04:00 WIB"], [3, 1, "22 Jun 2026, 10:00 WIB"], [1, 2, "27 Jun 2026, 12:00 WIB"], [3, 0, "27 Jun 2026, 12:00 WIB"]], 
-        "H": [[2, 3, "16 Jun 2026, 07:00 WIB"], [0, 1, "16 Jun 2026, 01:00 WIB"], [3, 1, "22 Jun 2026, 07:00 WIB"], [0, 2, "22 Jun 2026, 01:00 WIB"], [1, 2, "27 Jun 2026, 09:00 WIB"], [3, 0, "27 Jun 2026, 09:00 WIB"]], 
-        "I": [[0, 1, "17 Jun 2026, 04:00 WIB"], [2, 3, "17 Jun 2026, 07:00 WIB"], [3, 1, "23 Jun 2026, 09:00 WIB"], [0, 2, "23 Jun 2026, 06:00 WIB"], [3, 0, "27 Jun 2026, 04:00 WIB"], [1, 2, "27 Jun 2026, 04:00 WIB"]], 
-        "J": [[0, 1, "17 Jun 2026, 10:00 WIB"], [2, 3, "17 Jun 2026, 13:00 WIB"], [0, 2, "23 Jun 2026, 02:00 WIB"], [3, 1, "23 Jun 2026, 12:00 WIB"], [1, 2, "28 Jun 2026, 11:00 WIB"], [3, 0, "28 Jun 2026, 11:00 WIB"]], 
-        "K": [[0, 1, "18 Jun 2026, 02:00 WIB"], [2, 3, "18 Jun 2026, 11:00 WIB"], [0, 2, "24 Jun 2026, 02:00 WIB"], [3, 1, "24 Jun 2026, 11:00 WIB"], [3, 0, "28 Jun 2026, 08:30 WIB"], [1, 2, "28 Jun 2026, 08:30 WIB"]], 
-        "L": [[2, 3, "18 Jun 2026, 08:00 WIB"], [0, 1, "18 Jun 2026, 05:00 WIB"], [0, 2, "24 Jun 2026, 05:00 WIB"], [3, 1, "24 Jun 2026, 08:00 WIB"], [3, 0, "28 Jun 2026, 06:00 WIB"], [1, 2, "28 Jun 2026, 06:00 WIB"]]
-    };
+            function init() {
+                const savedData = localStorage.getItem("wc2026_full_v4");
+                if (savedData) scores = JSON.parse(savedData);
+                if (!scores.groups) scores.groups = {};
+                if (!scores.knockout) scores.knockout = {};
+                renderGroups();
+                renderKnockout();
+            }
 
-    const koTimes = {
-        "
+            function switchTab(tab) {
+                currentTab = tab;
+                document.getElementById("tab-group-btn").className =
+                    tab === "group"
+                        ? "px-6 py-2.5 font-bold rounded-lg shadow bg-blue-900 text-white"
+                        : "px-6 py-2.5 font-bold rounded-lg shadow bg-white text-slate-700 hover:bg-slate-200";
+                document.getElementById("tab-ko-btn").className =
+                    tab === "ko"
+                        ? "px-6 py-2.5 font-bold rounded-lg shadow bg-blue-900 text-white"
+                        : "px-6 py-2.5 font-bold rounded-lg shadow bg-white text-slate-700 hover:bg-slate-200";
+                document
+                    .getElementById("tab-group-content")
+                    .classList.toggle("hidden", tab !== "group");
+                document
+                    .getElementById("tab-ko-content")
+                    .classList.toggle("hidden", tab !== "ko");
+                if (tab === "ko") renderKnockout();
+            }
+
+            function saveData() {
+                localStorage.setItem("wc2026_full_v4", JSON.stringify(scores));
+            }
+            function resetData() {
+                if (confirm("Hapus semua skor?")) {
+                    localStorage.removeItem("wc2026_full_v4");
+                    location.reload();
+                }
+            }
+
+            function calculateStandings(g) {
+                const teams = groupsData[g];
+                const standings = teams.map((t, i) => ({
+                    name: t,
+                    pld: 0,
+                    w: 0,
+                    d: 0,
+                    l: 0,
+                    gf: 0,
+                    ga: 0,
+                    gd: 0,
+                    pts: 0,
+                }));
+                const matches = groupMatchesWIB[g];
+                if (!scores.groups[g]) scores.groups[g] = {};
+                matches.forEach((m, i) => {
+                    const s = scores.groups[g][i];
+                    if (s && s.t1 !== "" && s.t2 !== "") {
+                        const s1 = parseInt(s.t1),
+                            s2 = parseInt(s.t2);
+                        const t1 = standings[m[0]],
+                            t2 = standings[m[1]];
+                        t1.pld++;
+                        t2.pld++;
+                        t1.gf += s1;
+                        t1.ga += s2;
+                        t2.gf += s2;
+                        t2.ga += s1;
+                        t1.gd = t1.gf - t1.ga;
+                        t2.gd = t2.gf - t2.ga;
+                        if (s1 > s2) {
+                            t1.w++;
+                            t1.pts += 3;
+                            t2.l++;
+                        } else if (s1 < s2) {
+                            t2.w++;
+                            t2.pts += 3;
+                            t1.l++;
+                        } else {
+                            t1.d++;
+                            t2.d++;
+                            t1.pts++;
+                            t2.pts++;
+                        }
+                    }
+                });
+                return standings.sort(
+                    (a, b) => b.pts - a.pts || b.gd - a.gd || b.gf - a.gf,
+                );
+            }
+
+            function getAllQualifiers() {
+                const q = {};
+                const third = [];
+                for (const g in groupsData) {
+                    const s = calculateStandings(g);
+                    q[`1${g}`] = s[0].name;
+                    q[`2${g}`] = s[1].name;
+                    third.push({ name: s[2].name, pts: s[2].pts, gd: s[2].gd });
+                }
+                third.sort((a, b) => b.pts - a.pts || b.gd - a.gd);
+                for (let i = 0; i < 8; i++)
+                    q[`3rd_${i + 1}`] = third[i]
+                        ? third[i].name
+                        : `Posisi 3 Terbaik ${i + 1}`;
+                return q;
+            }
+
+            function getKoTeams() {
+                const ko = getAllQualifiers();
+                ["r32", "r16", "qf", "sf"].forEach((r) => {
+                    koStructure[r].forEach((m) => {
+                        const s = scores.knockout[m.id];
+                        let win = "",
+                            lose = "";
+                        const t1 =
+                            ko[`t1_${m.id}`] ||
+                            m.t1Home ||
+                            `Pemenang M${m.from?.[0]}`;
+                        const t2 =
+                            ko[`t2_${m.id}`] ||
+                            m.t2Home ||
+                            `Pemenang M${m.from?.[1]}`;
+                        if (s && s.t1 !== "" && s.t2 !== "") {
+                            const s1 = parseInt(s.t1),
+                                s2 = parseInt(s.t2);
+                            if (s1 > s2) {
+                                win = t1;
+                                lose = t2;
+                            } else if (s2 > s1) {
+                                win = t2;
+                                lose = t1;
+                            } else if (s.pWinner) {
+                                win = s.pWinner === "t1" ? t1 : t2;
+                                lose = s.pWinner === "t1" ? t2 : t1;
+                            }
+                        }
+                        if (win) {
+                            if (m.slot === "t1") ko[`t1_${m.nextMatch}`] = win;
+                            else ko[`t2_${m.nextMatch}`] = win;
+                        }
+                        if (lose && m.loseToMatch) {
+                            if (m.loseSlot === "t1")
+                                ko[`t1_${m.loseToMatch}`] = lose;
+                            else ko[`t2_${m.loseToMatch}`] = lose;
+                        }
+                    });
+                });
+                return ko;
+            }
+
+            function renderGroups() {
+                const c = document.getElementById("tab-group-content");
+                c.innerHTML = "";
+                for (const g in groupsData) {
+                    const d = document.createElement("div");
+                    d.className = "bg-white p-4 rounded-xl shadow border";
+                    d.innerHTML = `<h2 class="font-bold text-lg mb-2 text-blue-900 border-b">Grup ${g}</h2><table class="w-full text-xs"><thead><tr class="bg-slate-100"><th>#</th><th>Tim</th><th>P</th><th>GD</th><th>Pts</th></tr></thead><tbody id="tbody-${g}"></tbody></table><div class="mt-3 space-y-2" id="matches-${g}"></div>`;
+                    c.appendChild(d);
+                    updateGroupUI(g);
+                }
+            }
+
+            function updateGroupUI(g) {
+                const s = calculateStandings(g);
+                const tbody = document.getElementById(`tbody-${g}`);
+                tbody.innerHTML = "";
+                s.forEach(
+                    (t, i) =>
+                        (tbody.innerHTML += `<tr class="${i < 2 ? "bg-green-50" : i === 2 ? "bg-yellow-50" : ""}"><td class="p-1">${i + 1}</td><td class="p-1 truncate">${t.name}</td><td class="p-1">${t.pld}</td><td class="p-1">${t.gd}</td><td class="p-1 font-bold">${t.pts}</td></tr>`),
+                );
+                const mCont = document.getElementById(`matches-${g}`);
+                mCont.innerHTML = "";
+                groupMatchesWIB[g].forEach((m, i) => {
+                    mCont.innerHTML += `<div class="bg-slate-50 p-2 rounded border border-slate-200"><div class="text-[9px] text-center font-bold text-slate-400 mb-1">🕒 ${m[2]}</div><div class="flex justify-between items-center"><span class="w-[38%] truncate text-[11px]">${groupsData[g][m[0]]}</span><div class="flex items-center gap-1"><input type="number" class="w-10 h-8 text-center font-bold text-blue-700 bg-blue-50 border border-blue-200 rounded focus:bg-blue-100 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all" oninput="onGroupScore('${g}',${i},true,this.value)" value="${scores.groups[g]?.[i]?.t1 || ""}">-<input type="number" class="w-10 h-8 text-center font-bold text-blue-700 bg-blue-50 border border-blue-200 rounded focus:bg-blue-100 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all" oninput="onGroupScore('${g}',${i},false,this.value)" value="${scores.groups[g]?.[i]?.t2 || ""}"></div><span class="w-[38%] truncate text-[11px] text-right">${groupsData[g][m[1]]}</span></div></div>`;
+                });
+            }
+
+            function onGroupScore(g, i, isT1, v) {
+                if (!scores.groups[g]) scores.groups[g] = {};
+                if (!scores.groups[g][i])
+                    scores.groups[g][i] = { t1: "", t2: "" };
+                isT1
+                    ? (scores.groups[g][i].t1 = v)
+                    : (scores.groups[g][i].t2 = v);
+                saveData();
+                updateGroupUI(g);
+            }
+
+            function onKoScore(id, isT1, v) {
+                if (!scores.knockout[id])
+                    scores.knockout[id] = { t1: "", t2: "", pWinner: "" };
+                isT1
+                    ? (scores.knockout[id].t1 = v)
+                    : (scores.knockout[id].t2 = v);
+                if (scores.knockout[id].t1 != scores.knockout[id].t2)
+                    scores.knockout[id].pWinner = "";
+                saveData();
+                renderKnockout();
+            }
+
+            function setPen(id, slot) {
+                scores.knockout[id].pWinner = slot;
+                saveData();
+                renderKnockout();
+            }
+
+            function renderKnockout() {
+                if (currentTab !== "ko") return;
+                const c = document.getElementById("tab-ko-content");
+                c.innerHTML = "";
+                const koTeams = getKoTeams();
+                for (const round in koStructure) {
+                    const sec = document.createElement("div");
+                    sec.innerHTML = `<h2 class="text-xl font-bold border-b mb-3">${round}</h2><div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"></div>`;
+                    koStructure[round].forEach((m) => {
+                        const t1 =
+                                koTeams[`t1_${m.id}`] ||
+                                m.t1Home ||
+                                `M${m.from?.[0]}`,
+                            t2 =
+                                koTeams[`t2_${m.id}`] ||
+                                m.t2Home ||
+                                `M${m.from?.[1]}`;
+                        const s = scores.knockout[m.id] || {
+                            t1: "",
+                            t2: "",
+                            pWinner: "",
+                        };
+                        sec.querySelector("div").innerHTML +=
+                            `<div class="bg-white p-3 rounded shadow border border-slate-200 text-xs"><div class="text-[10px] text-slate-400 mb-1">Match ${m.id}</div><div class="flex justify-between items-center my-2"><span class="truncate w-1/2">${t1}</span><input type="number" class="w-10 h-8 text-center font-bold text-blue-700 bg-blue-50 border border-blue-200 rounded focus:bg-blue-100 focus:border-blue-500 outline-none transition-all" oninput="onKoScore(${m.id}, true, this.value)" value="${s.t1}"></div><div class="flex justify-between items-center"><span class="truncate w-1/2">${t2}</span><input type="number" class="w-10 h-8 text-center font-bold text-blue-700 bg-blue-50 border border-blue-200 rounded focus:bg-blue-100 focus:border-blue-500 outline-none transition-all" oninput="onKoScore(${m.id}, false, this.value)" value="${s.t2}"></div>${s.t1 && s.t1 == s.t2 ? `<div class="mt-2 text-center text-amber-600 font-bold text-[10px]">Penalti: <button onclick="setPen(${m.id},'t1')" class="${s.pWinner == "t1" ? "bg-amber-600 text-white" : ""} px-1 border rounded">${t1.substring(0, 3)}</button> <button onclick="setPen(${m.id},'t2')" class="${s.pWinner == "t2" ? "bg-amber-600 text-white" : ""} px-1 border rounded">${t2.substring(0, 3)}</button></div>` : ""}</div>`;
+                    });
+                    c.appendChild(sec);
+                }
+            }
+            init();
+        </script>
+    </body>
+</html>
