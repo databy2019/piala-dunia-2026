@@ -412,6 +412,7 @@
 
             function switchTab(tab) {
                 currentTab = tab;
+                // Update tombol
                 document.getElementById("tab-group-btn").className =
                     tab === "group"
                         ? "px-6 py-2.5 font-bold rounded-lg shadow bg-blue-900 text-white"
@@ -420,12 +421,15 @@
                     tab === "ko"
                         ? "px-6 py-2.5 font-bold rounded-lg shadow bg-blue-900 text-white"
                         : "px-6 py-2.5 font-bold rounded-lg shadow bg-white text-slate-700 hover:bg-slate-200";
+
+                // Toggle konten
                 document
                     .getElementById("tab-group-content")
                     .classList.toggle("hidden", tab !== "group");
                 document
                     .getElementById("tab-ko-content")
                     .classList.toggle("hidden", tab !== "ko");
+
                 if (tab === "ko") renderKnockout();
             }
 
@@ -522,22 +526,27 @@
 
             function getKoTeams() {
                 // Pastikan scores dan scores.knockout ada, jika tidak, gunakan objek kosong
+                // const knockoutData =
+                //     scores && scores.knockout ? scores.knockout : {};
+                const qualifiers = getAllQualifiers();
+                const ko = { ...qualifiers };
+                // Deklarasi knockoutData hanya sekali di sini
                 const knockoutData =
                     scores && scores.knockout ? scores.knockout : {};
-                const ko = getAllQualifiers();
+
                 ["r32", "r16", "qf", "sf"].forEach((r) => {
                     koStructure[r].forEach((m) => {
-                        const s = scores.knockout[m.id];
+                        const s = knockoutData[m.id] || {
+                            t1: "",
+                            t2: "",
+                            pWinner: "",
+                        };
+
+                        const t1 = ko[`t1_${m.id}`] || ko[m.t1Home] || m.t1Home;
+                        const t2 = ko[`t2_${m.id}`] || ko[m.t2Home] || m.t2Home;
+
                         let win = "",
                             lose = "";
-                        const t1 =
-                            ko[`t1_${m.id}`] ||
-                            m.t1Home ||
-                            `Pemenang M${m.from?.[0]}`;
-                        const t2 =
-                            ko[`t2_${m.id}`] ||
-                            m.t2Home ||
-                            `Pemenang M${m.from?.[1]}`;
                         if (s && s.t1 !== "" && s.t2 !== "") {
                             const s1 = parseInt(s.t1),
                                 s2 = parseInt(s.t2);
@@ -552,6 +561,7 @@
                                 lose = s.pWinner === "t1" ? t2 : t1;
                             }
                         }
+
                         if (win) {
                             if (m.slot === "t1") ko[`t1_${m.nextMatch}`] = win;
                             else ko[`t2_${m.nextMatch}`] = win;
@@ -627,25 +637,37 @@
                 const c = document.getElementById("tab-ko-content");
                 c.innerHTML = "";
                 const koTeams = getKoTeams();
+
                 for (const round in koStructure) {
                     const sec = document.createElement("div");
-                    sec.innerHTML = `<h2 class="text-xl font-bold border-b mb-3">${round}</h2><div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"></div>`;
+                    sec.innerHTML = `<h2 class="text-xl font-bold border-b mb-3">${round.toUpperCase()}</h2><div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"></div>`;
+
                     koStructure[round].forEach((m) => {
                         const t1 =
-                                koTeams[`t1_${m.id}`] ||
-                                m.t1Home ||
-                                `M${m.from?.[0]}`,
-                            t2 =
-                                koTeams[`t2_${m.id}`] ||
-                                m.t2Home ||
-                                `M${m.from?.[1]}`;
-                        const s = scores.knockout[m.id] || {
-                            t1: "",
-                            t2: "",
-                            pWinner: "",
-                        };
-                        sec.querySelector("div").innerHTML +=
-                            `<div class="bg-white p-3 rounded shadow border border-slate-200 text-xs"><div class="text-[10px] text-slate-400 mb-1">Match ${m.id}</div><div class="flex justify-between items-center my-2"><span class="truncate w-1/2">${t1}</span><input type="number" class="w-10 h-8 text-center font-bold text-blue-700 bg-blue-50 border border-blue-200 rounded focus:bg-blue-100 focus:border-blue-500 outline-none transition-all" oninput="onKoScore(${m.id}, true, this.value)" value="${s.t1}"></div><div class="flex justify-between items-center"><span class="truncate w-1/2">${t2}</span><input type="number" class="w-10 h-8 text-center font-bold text-blue-700 bg-blue-50 border border-blue-200 rounded focus:bg-blue-100 focus:border-blue-500 outline-none transition-all" oninput="onKoScore(${m.id}, false, this.value)" value="${s.t2}"></div>${s.t1 && s.t1 == s.t2 ? `<div class="mt-2 text-center text-amber-600 font-bold text-[10px]">Penalti: <button onclick="setPen(${m.id},'t1')" class="${s.pWinner == "t1" ? "bg-amber-600 text-white" : ""} px-1 border rounded">${t1.substring(0, 3)}</button> <button onclick="setPen(${m.id},'t2')" class="${s.pWinner == "t2" ? "bg-amber-600 text-white" : ""} px-1 border rounded">${t2.substring(0, 3)}</button></div>` : ""}</div>`;
+                            koTeams[`t1_${m.id}`] ||
+                            koTeams[m.t1Home] ||
+                            m.t1Home;
+                        const t2 =
+                            koTeams[`t2_${m.id}`] ||
+                            koTeams[m.t2Home] ||
+                            m.t2Home;
+                        const s =
+                            scores && scores.knockout && scores.knockout[m.id]
+                                ? scores.knockout[m.id]
+                                : { t1: "", t2: "", pWinner: "" };
+
+                        sec.querySelector("div").innerHTML += `
+                              <div class="bg-white p-3 rounded shadow border border-slate-200 text-xs">
+                                  <div class="text-[10px] text-slate-400 mb-1">Match ${m.id}</div>
+                                  <div class="flex justify-between items-center my-2">
+                                      <span class="truncate w-1/2">${t1}</span>
+                                      <input type="number" class="w-10 h-8 text-center font-bold text-blue-700 bg-blue-50 border border-blue-200 rounded" oninput="onKoScore(${m.id}, true, this.value)" value="${s.t1}">
+                                  </div>
+                                  <div class="flex justify-between items-center">
+                                      <span class="truncate w-1/2">${t2}</span>
+                                      <input type="number" class="w-10 h-8 text-center font-bold text-blue-700 bg-blue-50 border border-blue-200 rounded" oninput="onKoScore(${m.id}, false, this.value)" value="${s.t2}">
+                                  </div>
+                              </div>`;
                     });
                     c.appendChild(sec);
                 }
